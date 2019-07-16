@@ -4,6 +4,7 @@ import random
 import sys
 
 words = []
+fullWordEg = []
 isShown_R = False
 isShown_F = False
 regretWord = ''
@@ -24,16 +25,19 @@ def parseTXT(txtName):
         # print(r[1:])
 
         words.append((r[0], r[1:]))
-
+    global fullWordEg
+    for item in words:
+        fullWordEg.append(item[0])
+    print(fullWordEg)
     return words
 
 
-def iRemember():
+def iForget():
     global words
-    print('remember')
+    # print('remember')
     if len(words) == 0:
         # this list is complete
-        print('remeber done')
+        # print('remeber done')
         print(badDict)
         return '毕'
     elif len(words) == 1:
@@ -44,7 +48,27 @@ def iRemember():
 
     index = random.randint(0, len(words) - 1)
     word = words[index]
-    print(word)
+    # print(word)
+    return word
+
+
+def iRemember():
+    global words
+    # print('remember')
+    if len(words) == 0:
+        # this list is complete
+        # print('remeber done')
+        print(badDict)
+        return '毕'
+    elif len(words) == 1:
+        word = words[0]
+        words = []
+
+        return word
+
+    index = random.randint(0, len(words) - 1)
+    word = words[index]
+    # print(word)
     words.pop(index)
     return word
 
@@ -89,6 +113,16 @@ class Application:
             global isShown_F
             isShown_F = False
 
+            if regretWord == self.word_eg:
+                # already forget but also clicked remember. Ignore remember. You are dumb.
+                r = iForget()
+                self.word_eg = r[0]
+                ch = str(r[1:])
+
+                self.word_ch = str(ch[3:-4])
+                self.ShowingWord.config(text=self.word_eg)
+                self.ShowingResult.config(text='')
+
             if isShown_R == False:
                 # need to show the Chinese
                 self.ShowingResult.config(text=self.word_ch)
@@ -115,9 +149,9 @@ class Application:
             global isShown_R
 
             print('exec nextWordF: ')
-            print(isShown_F)
-            print(isShown_R)
+
             print(regretWord)
+            print(self.word_eg)
 
             if regretWord != self.word_eg:
                 if self.word_eg not in badDict:
@@ -126,23 +160,29 @@ class Application:
                 else:
                     badDict[self.word_eg] = badDict[self.word_eg] + 1
 
-            if (isShown_R == True) and (isShown_F == False) and (regretWord != self.word_eg):
+            if (isShown_F == False) and (regretWord != self.word_eg):
                 # regret option, first exec
                 print('append')
                 regretWord = self.word_eg
-                temp = (self.word_eg, self.word_ch)
-                words.append(temp)
+                ch_temp = '[' + self.word_ch + ']'
+                temp = (self.word_eg, ch_temp)
+                print(temp)
+                print(fullWordEg)
+
+                if self.word_eg not in fullWordEg:
+                    print('add it back')
+                    words.append(temp)
 
             elif isShown_F == False:
-                print('output')
+                # print('output')
                 isShown_F = True
                 print(isShown_F)
                 self.ShowingResult.config(text=self.word_ch)
 
             else:
-                print('next')
+                # print('next')
                 isShown_F = False
-                r = iRemember()
+                r = iForget()
                 self.word_eg = r[0]
                 ch = str(r[1:])
                 self.word_ch = str(ch[3:-4])
@@ -233,5 +273,6 @@ def main(txtName):
 
 
 if __name__ == '__main__':
-    txtName = sys.argv[1]
+    # txtName = sys.argv[1]
+    txtName = '08red/10.txt'
     main(txtName)
