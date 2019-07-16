@@ -3,16 +3,8 @@ import tkinter as tk
 import random
 import sys
 
-words = []
-fullWordEg = []
-isShown_R = False
-isShown_F = False
-isShown_ENG = True
-isShown_CHN = False
-isRemembered = False
-regretWord = ''
-forgetWord = ''
-badDict = {}
+list_CN = []
+list_EN = []
 
 
 def parseTXT(txtName):
@@ -20,83 +12,142 @@ def parseTXT(txtName):
     fp = open(txtName, 'r')
     lines = fp.readlines()
 
-    global words
+    global list_CN
+    global list_EN
 
     for line in lines:
         r = line.split()
-        # print(line)
-        # print(r[0])
-        # print(r[1:])
 
-        words.append((r[0], r[1:]))
-    global fullWordEg
-    for item in words:
-        fullWordEg.append(item[0])
-    print(fullWordEg)
-    return words
+        list_EN.append(r[0])
+        list_CN.append((str(r[1:])[2:-2]))
 
-
-def iForget(temp, wordENG):
-    global words
-    print('>>> %s' % wordENG)
-    print(fullWordEg)
-    print('<<<<<<')
-    print(wordENG in fullWordEg)
-    if wordENG not in fullWordEg:
-        print('add it back')
-        words.append(temp)
-
-    # print('remember')
-    if len(words) == 0:
-        # this list is complete
-        # print('remeber done')
-        print(badDict)
-        return '毕'
-    elif len(words) == 1:
-        word = words[0]
-        words = []
-
-        return word
-
-    index = random.randint(0, len(words) - 1)
-    word = words[index]
-    # print(word)
-    return word
-
-
-def iRemember():
-    global words
-    # print('remember')
-    if len(words) == 0:
-        # this list is complete
-        # print('remeber done')
-        print(badDict)
-        return '毕'
-    elif len(words) == 1:
-        word = words[0]
-        words = []
-
-        return word
-
-    index = random.randint(0, len(words) - 1)
-    word = words[index]
-    # print(word)
-    words.pop(index)
-    return word
+    return
 
 
 class Application:
     def __init__(self, master):
+        self.wordState = False  # False for unknown and True for known.
+        self.level = 0          # 0 for not choose, 1 for first choice, 2 for more choice
+        self.master = master    # storing the window var
+        self.index = 0
+        self.isShown_CN = False
+        self.currentFile = ''
+        self.currentFileFolder = ''
+        self.badDict = {}
         self.word_eg = tk.StringVar()
         self.word_ch = tk.StringVar()
+        self.ViewControl()
+        self.keyboardSupoort()  # enable keyboard binding
 
-        self.master = master
+    def NextNewWord(self):
+        # todo: delete prev entry
+        self.updateBothButtons('我忘了', '我记得')
+        if self.wordState == True:
+            list_CN.pop(self.index)
+            list_EN.pop(self.index)
+
+        self.updateStatusBar('yellow')
+
+        self.index = random.randint(0, len(list_EN)-1)
+        self.level = 0
+        self.wordState = False
+        self.updateCHN('')
+        self.updateENG(list_EN[self.index])
+        # self.updateStatusBar()
+
+    def control(self, isRemembered):
+        print('level is %d' % self.level)
+        if self.level == 0:
+            self.level = 1
+            if isRemembered == True:
+                self.wordState = True
+            else:
+                self.wordState = False
+
+            self.updateCHN(list_CN[self.index])
+            return
+
+        if self.level == 1:
+
+            self.level = 2
+            if self.wordState == True and isRemembered == True:
+
+                self.NextNewWord()
+            if self.wordState == False and isRemembered == False:
+                self.NextNewWord()
+
+            else:
+                self.wordState == False
+                if isRemembered == False:
+                    self.updateBothButtons('忘记了', '下一个')
+                    self.updateStatusBar('red')
+                    return
+
+                self.NextNewWord()
+            return
+
+        if self.level == 2:
+            # regret
+            self.wordState == False
+            if isRemembered == False:
+                self.updateBothButtons('忘记了', '下一个')
+                self.updateStatusBar('red')
+                return
+
+            self.NextNewWord()
+            return
+
+    def RemHelper(self):
+        self.control(True)
+
+    def FgtHelper(self):
+        self.control(False)
+
+    def updateENG(self, input):
+            # remember to call master.update after it
+        print('updating eng: %s' % input)
+        self.ShowingWord.config(text=input)
+        # self.button_remember.config(text='我记得')
+
+    def updateCHN(self, input):
+                # remember to call master.update after it
+        print('updating chn: %s' % input)
+        self.ShowingResult.config(text=input)
+        # self.button_remember.config(text='下一个')
+
+    def updateBothButtons(self, t1, t2):
+        self.button_forget.config(text=t1)
+        self.button_remember.config(text=t2)
+
+    def keyStroke(self, event):
+        print(">>>>>>>>>>>>>>>>s")
+        print(event.char)
+        print(event.keycode)
+        print(event)
+        print('>>>>>>>>>>>>>>>>>>')
+        if event.char == 'a' or event.keycode == 113 or event.char == '\uf702':
+            self.FgtHelper()
+        if event.char == 's' or event.keycode == 114 or event.char == '\uf703':
+            self.RemHelper()
+
+    def updateStatusBar(self, fgColor='MISS'):
+        # self.label_title_right.config(text=self.currentFile)
+        remain = '(剩余:' + str(len(list_EN)) + ')'
+        if fgColor == 'MISS':
+            self.label_title.config(text=remain)
+        else:
+            self.label_title.config(text=remain, fg=fgColor)
+
+            # self.label_title_right.config()
+
+    def ViewControl(self):
         self.frame_StatusBar = tk.Frame(self.master, bg='green')
-        self. frame_WordWindow = tk.Frame(self.master, bg='blue')
+        self. frame_WordWindow = tk.Frame(self.master, bg='grey')
         self.frame_OperationWindow = tk.Frame(self.master, bg='green')
 
-        self.inner_frame_StatusBar = tk.Frame(self.frame_StatusBar)
-        self. inner_frame_WordWindow = tk.Frame(self.frame_WordWindow)
+        self.inner_frame_StatusBar = tk.Frame(
+            self.frame_StatusBar, bg='green')
+        self.inner_frame_WordWindow = tk.Frame(self.frame_WordWindow)
         self.inner_frame_OperationWindow = tk.Frame(self.frame_OperationWindow)
 
         # pack the frame up
@@ -104,228 +155,31 @@ class Application:
         self.frame_WordWindow.pack(side='top', fill='x')
         self.frame_OperationWindow.pack(fill='both', expand='yes')
         self.inner_frame_StatusBar.pack(
-            fill='both', expand='yes', padx=5, pady=5)
+            fill='both', expand='yes', padx=5, pady=3)
         self.inner_frame_WordWindow.pack(
             fill='both', expand='yes', padx=3, pady=3)
         self.inner_frame_OperationWindow.pack(
             fill='both', expand='yes', padx=3, pady=3)
 
         # create widgets
+        self.label_title_left = tk.Label(
+            self.inner_frame_StatusBar, text='')
         self.label_title = tk.Label(
-            self.inner_frame_StatusBar, text='GREat@背单词')
+            self.inner_frame_StatusBar, text='', bg='green')
+        self.label_title_right = tk.Label(
+            self.inner_frame_StatusBar, text='')
+
         self.ShowingWord = tk.Label(
             self.inner_frame_WordWindow, text='Wait for Load', font=('Arial', 20))
         self.line_between = tk.Canvas(
-            self.inner_frame_WordWindow, height=2, bg='yellow')
+            self.inner_frame_WordWindow, height=2, bg='grey')
         self.ShowingResult = tk.Label(
-            self.inner_frame_WordWindow, text='Wait for Load', font=('Arial', 10))
-
-        def updateENG(input):
-            # remember to call master.update after it
-            print('updating eng: %s' % input)
-            self.ShowingWord.config(text=input)
-            self.button_remember.config(text='我记得')
-
-        def updateCHN(input):
-                # remember to call master.update after it
-            print('updating chn: %s' % input)
-            self.ShowingResult.config(text=input)
-            self.button_remember.config(text='下一个')
-
-        def RemButtonPressed():
-            # Cause the self.eg & cn has already been poped, we don't need to take care
-            global isShown_CHN
-            global isShown_ENG
-            global forgetWord
-            global isRemembered
-
-            if forgetWord == self.word_eg:
-                # You already forget this word. Ignore this.
-                # ch_temp = '[' + self.word_ch + ']'
-                # temp = (self.word_eg, ch_temp)
-                # r = iForget(temp, self.word_eg)
-                ch_temp = '[' + self.word_ch + ']'
-                temp = (self.word_eg, ch_temp)
-                r = iForget(temp, self.word_eg)
-
-                self.word_eg = r[0]
-                ch = str(r[1:])
-                self.word_ch = str(ch[3:-4])
-                # show next word.
-                updateCHN('')
-                updateENG(self.word_eg)
-                isShown_CHN = False
-                isRemembered = False
-
-            elif isShown_CHN == False:
-                # Haven't given Chinese
-                updateCHN(self.word_ch)
-                isShown_CHN = True
-                isRemembered = True
-
-            else:
-                # pick next word.
-                isRemembered = False
-                r = iRemember()
-                self.word_eg = r[0]
-                ch = str(r[1:])
-                self.word_ch = str(ch[3:-4])
-                # show next word.
-                updateCHN('')
-                updateENG(self.word_eg)
-                isShown_CHN = False
-
-            print('remaining: %s ' % str(len(words)))
-            self.master.update()
-
-        def FgtButtonPressed():
-            # A bit complexity here.
-            global isShown_CHN
-            global isShown_ENG
-            global forgetWord
-            global isRemembered
-
-            if isRemembered == True:
-                # no, you actually not remember.
-                ch_temp = '[' + self.word_ch + ']'
-                temp = (self.word_eg, ch_temp)
-                r = iForget(temp, self.word_eg)
-                self.word_eg = r[0]
-                ch = str(r[1:])
-                self.word_ch = str(ch[3:-4])
-                # show next word.
-                updateCHN('')
-                updateENG(self.word_eg)
-                isShown_CHN = False
-                isRemembered = False
-
-            elif forgetWord != self.word_eg:
-                # new word here
-                forgetWord = self.word_eg
-                updateCHN(self.word_ch)
-                isShown_CHN = True
-
-            elif isShown_CHN == True:
-                ch_temp = '[' + self.word_ch + ']'
-                temp = (self.word_eg, ch_temp)
-                r = iForget(temp, self.word_eg)
-
-                self.word_eg = r[0]
-                ch = str(r[1:])
-                self.word_ch = str(ch[3:-4])
-                # show next word.
-                updateCHN('')
-                updateENG(self.word_eg)
-                isShown_CHN = False
-                isRemembered = False
-
-            print('remaining: %s ' % str(len(words)))
-            self.master.update()
-
-        def nextWord_R():
-            global isShown_R
-            global isShown_F
-            isShown_F = False
-
-            if regretWord == self.word_eg:
-                # already forget but also clicked remember. Ignore remember. You are dumb.
-                r = iForget()
-                self.word_eg = r[0]
-                ch = str(r[1:])
-
-                self.word_ch = str(ch[3:-4])
-                self.ShowingWord.config(text=self.word_eg)
-                self.ShowingResult.config(text='')
-
-            if isShown_R == False:
-                # need to show the Chinese
-                self.ShowingResult.config(text=self.word_ch)
-                print('remaining: %s ' % str(len(words)))
-                isShown_R = True
-
-            else:
-                isShown_R = False
-                r = iRemember()
-                self.word_eg = r[0]
-                ch = str(r[1:])
-
-                self.word_ch = str(ch[3:-4])
-                self.ShowingWord.config(text=self.word_eg)
-                self.ShowingResult.config(text='')
-
-            print('remaining: %s ' % str(len(words)))
-            self.master.update()
-
-        def nextWord_F():
-            global regretWord
-            global badDict
-            global isShown_F
-            global isShown_R
-
-            print('exec nextWordF: ')
-
-            print(regretWord)
-            print(self.word_eg)
-
-            if regretWord != self.word_eg:
-                if self.word_eg not in badDict:
-                    badDict[self.word_eg] = 1
-
-                else:
-                    badDict[self.word_eg] = badDict[self.word_eg] + 1
-
-            if (isShown_F == False):
-                if (regretWord != self.word_eg):
-                    # regret option, first exec
-                    print('append')
-                    regretWord = self.word_eg
-                    ch_temp = '[' + self.word_ch + ']'
-                    temp = (self.word_eg, ch_temp)
-                    print(temp)
-                    print(fullWordEg)
-
-                    if self.word_eg not in fullWordEg:
-                        print('add it back')
-                        words.append(temp)
-
-                # print('output')
-                isShown_F = True
-                print(isShown_F)
-                self.ShowingResult.config(text=self.word_ch)
-
-            else:
-                # print('next')
-                isShown_F = False
-                r = iForget()
-                self.word_eg = r[0]
-                ch = str(r[1:])
-                self.word_ch = str(ch[3:-4])
-                self.ShowingWord.config(text=self.word_eg)
-                self.ShowingResult.config(text='')
-
-            print('remaining: %s ' % str(len(words)))
-            self.master.update()
-
-        def keyStroke(event):
-            print(">>>>>>>>>>>>>>>>s")
-            print(event.char)
-            print(event.keycode)
-            print(event)
-            print('>>>>>>>>>>>>>>>>>>')
-            if event.char == 'a' or event.keycode == 113 or event.char == '\uf702':
-                FgtButtonPressed()
-            if event.char == 's' or event.keycode == 114 or event.char == '\uf703':
-                RemButtonPressed()
-
-        self.master.bind("a", keyStroke)
-        self.master.bind("s", keyStroke)
-        self.master.bind("<Right>", keyStroke)
-        self.master.bind("<Left>", keyStroke)
+            self.inner_frame_WordWindow, text='Wait for Load', font=('Arial', 13))
 
         self.button_forget = tk.Button(
-            self.inner_frame_OperationWindow, text='我忘了', width=13, height=5, command=FgtButtonPressed)
+            self.inner_frame_OperationWindow, text='我忘了', width=13, height=5, command=self.FgtHelper)
         self.button_remember = tk.Button(
-            self.inner_frame_OperationWindow, text='我记得', width=13, height=5, command=RemButtonPressed)
+            self.inner_frame_OperationWindow, text='我记得', width=13, height=5, command=self.RemHelper)
 
         self.imageLoad = tk.Canvas(bg='red')
 
@@ -333,7 +187,9 @@ class Application:
             self.master,  text='Setttings', width=25, command=self.StartSetttings)
 
         # pack them up
-        self.label_title.pack(side='left')
+        # self.label_title_left.pack(side='left')
+        self.label_title.pack(side='top', fill='both')
+        # self.label_title_right.pack(side='left')
         self.ShowingWord.pack(side='top', fill='x', expand='yes')
         self.line_between.pack(side='top', fill='x', expand='yes')
         self.ShowingResult.pack(side='top', fill='x', expand='yes')
@@ -347,6 +203,12 @@ class Application:
 
         self.newWindow = tk.Toplevel(self.master)
         self.app = SubApplication(self.newWindow)
+
+    def keyboardSupoort(self):
+        self.master.bind("a", self.keyStroke)
+        self.master.bind("s", self.keyStroke)
+        self.master.bind("<Right>", self.keyStroke)
+        self.master.bind("<Left>", self.keyStroke)
 
 
 class SubApplication:
@@ -375,20 +237,14 @@ def main(txtName):
     root.title('GREat@背单词')
     root.geometry('280x300')
     app = Application(root)
-    r = iRemember()
-    app.word_eg = r[0]
-    ch = str(r[1:])
-    app.word_ch = str(ch[3:-4])
-    app.ShowingWord.config(text=app.word_eg)
-    app.ShowingResult.config(text='')
-
-    print('remaining: %s ' % str(len(words)))
-    print(len(words))
-
+    app.NextNewWord()
     root.mainloop()
 
 
 if __name__ == '__main__':
-    # txtName = sys.argv[1]
-    txtName = '08red/10.txt'
+    print(len(sys.argv))
+    if len(sys.argv) == 2:
+        txtName = sys.argv[1]
+    else:
+        txtName = '08red/10.txt'
     main(txtName)
