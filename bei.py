@@ -7,7 +7,10 @@ words = []
 fullWordEg = []
 isShown_R = False
 isShown_F = False
+isShown_ENG = True
+isShown_CHN = True
 regretWord = ''
+forgetWord = ''
 badDict = {}
 
 
@@ -32,8 +35,13 @@ def parseTXT(txtName):
     return words
 
 
-def iForget():
+def iForget(temp, wordENG):
     global words
+
+    if wordENG not in fullWordEg:
+        print('add it back')
+        words.append(temp)
+
     # print('remember')
     if len(words) == 0:
         # this list is complete
@@ -108,6 +116,81 @@ class Application:
         self.ShowingResult = tk.Label(
             self.inner_frame_WordWindow, text='Wait for Load', font=('Arial', 10))
 
+        def updateENG(input):
+            # remember to call master.update after it
+            print('updating eng: %s' % input)
+            self.ShowingWord.config(text=input)
+
+        def updateCHN(input):
+                # remember to call master.update after it
+            print('updating chn: %s' % input)
+            self.ShowingResult.config(text=input)
+
+        def RemButtonPressed():
+            # Cause the self.eg & cn has already been poped, we don't need to take care
+            global isShown_CHN
+            global isShown_ENG
+            global forgetWord
+
+            if forgetWord == self.word_eg:
+                # You already forget this word. Ignore this.
+                ch_temp = '[' + self.word_ch + ']'
+                temp = (self.word_eg, ch_temp)
+                r = iForget(temp, self.word_eg)
+                self.word_eg = r[0]
+                ch = str(r[1:])
+                self.word_ch = str(ch[3:-4])
+                # show next word.
+                updateCHN('')
+                updateENG(self.word_eg)
+                isShown_CHN = False
+
+            elif isShown_CHN == False:
+                # Haven't given Chinese
+                updateCHN(self.word_ch)
+                isShown_CHN = True
+
+            else:
+                r = iRemember()
+                self.word_eg = r[0]
+                ch = str(r[1:])
+                self.word_ch = str(ch[3:-4])
+                # show next word.
+                updateCHN('')
+                updateENG(self.word_eg)
+                isShown_CHN = False
+
+            print('remaining: %s ' % str(len(words)))
+            self.master.update()
+
+        def FgtButtonPressed():
+            # A bit complexity here.
+            global isShown_CHN
+            global isShown_ENG
+            global forgetWord
+
+            if forgetWord != self.word_eg:
+                # new word here
+                forgetWord = self.word_eg
+                updateCHN(self.word_ch)
+                isShown_CHN = True
+
+            elif isShown_CHN == True:
+                ch_temp = '[' + self.word_ch + ']'
+                temp = (self.word_eg, ch_temp)
+                r = iForget(temp, self.word_eg)
+
+                self.word_eg = r[0]
+                ch = str(r[1:])
+                self.word_ch = str(ch[3:-4])
+                # show next word.
+                updateCHN('')
+                updateENG(self.word_eg)
+                isShown_CHN = False
+
+            print('remaining: %s ' % str(len(words)))
+            self.master.update()
+
         def nextWord_R():
             global isShown_R
             global isShown_F
@@ -160,20 +243,20 @@ class Application:
                 else:
                     badDict[self.word_eg] = badDict[self.word_eg] + 1
 
-            if (isShown_F == False) and (regretWord != self.word_eg):
-                # regret option, first exec
-                print('append')
-                regretWord = self.word_eg
-                ch_temp = '[' + self.word_ch + ']'
-                temp = (self.word_eg, ch_temp)
-                print(temp)
-                print(fullWordEg)
+            if (isShown_F == False):
+                if (regretWord != self.word_eg):
+                    # regret option, first exec
+                    print('append')
+                    regretWord = self.word_eg
+                    ch_temp = '[' + self.word_ch + ']'
+                    temp = (self.word_eg, ch_temp)
+                    print(temp)
+                    print(fullWordEg)
 
-                if self.word_eg not in fullWordEg:
-                    print('add it back')
-                    words.append(temp)
+                    if self.word_eg not in fullWordEg:
+                        print('add it back')
+                        words.append(temp)
 
-            elif isShown_F == False:
                 # print('output')
                 isShown_F = True
                 print(isShown_F)
@@ -196,6 +279,8 @@ class Application:
             print(">>>>>>>>>>>>>>>>s")
             print(event.char)
             print(event.keycode)
+            print(event)
+            print('>>>>>>>>>>>>>>>>>>')
             if event.char == 'a' or event.keycode == 113:
                 nextWord_F()
             if event.char == 's' or event.keycode == 114:
@@ -207,9 +292,9 @@ class Application:
         self.master.bind("<Left>", keyStroke)
 
         self.button_forget = tk.Button(
-            self.inner_frame_OperationWindow, text='我忘了', width=13, height=5, command=nextWord_F)
+            self.inner_frame_OperationWindow, text='我忘了', width=13, height=5, command=FgtButtonPressed)
         self.button_remember = tk.Button(
-            self.inner_frame_OperationWindow, text='我记得', width=13, height=5, command=nextWord_R)
+            self.inner_frame_OperationWindow, text='我记得', width=13, height=5, command=RemButtonPressed)
 
         self.imageLoad = tk.Canvas(bg='red')
 
