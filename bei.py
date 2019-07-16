@@ -214,17 +214,48 @@ class Application:
 class SubApplication:
     def __init__(self, master):
         self.master = master
-        self.frame = tk.Frame(self.master)
+        self.ViewControl()
+
+
+    def ViewControl(self):
+        self.SettingFrame = tk.Frame(self.master)
+
         self.quitButton = tk.Button(
-            self.frame, text='Quit', width=25, command=self.close_windows)
+            self.SettingFrame, text='Quit', width=25, command=self.close_windows)
         self.setting_entry_indicator = tk.Label(
-            self.master, text='输入读取文件地址(请放在当前目录下)')
-        self.file_location = tk.Entry(self.master)
+            self.SettingFrame, text='输入读取文件地址(请放在当前目录下)')
+        self.file_location = tk.Entry(self.SettingFrame)
+
+        self.entry1 = tk.Entry(self.SettingFrame)
+
+        self.entry1Button = tk.Button(self.SettingFrame)
+        self.entry1Label = tk.Label(self.SettingFrame, text='entry1')
+        self.entry2 = tk.Entry(self.SettingFrame)
+        self.entry2Button = tk.Button(self.SettingFrame)
+        self.entry2Label = tk.Label(self.SettingFrame, text='entry2')
+
+        self.entry3 = tk.Entry(self.SettingFrame)
+        self.entry3Button = tk.Button(self.SettingFrame)
+        self.entry3Label = tk.Label(self.SettingFrame, text='entry3')
+
+        self.SettingFrame.pack()
+        # self.entryFrame1.pack()
+        # self.entryFrame2.pack()
+        # self.entryFrame3.pack()
+
+        self.entry1Label.pack()
+        self.entry1.pack()
+
+        self.entry2Label.pack()
+        self.entry2.pack()
+
+        self.entry3Label.pack()
+        self.entry3.pack()
 
         self.setting_entry_indicator.pack()
         self.file_location.pack()
+
         self.quitButton.pack()
-        self.frame.pack()
 
     def close_windows(self):
         self.master.destroy()
