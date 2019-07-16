@@ -8,7 +8,8 @@ fullWordEg = []
 isShown_R = False
 isShown_F = False
 isShown_ENG = True
-isShown_CHN = True
+isShown_CHN = False
+isRemembered = False
 regretWord = ''
 forgetWord = ''
 badDict = {}
@@ -37,7 +38,10 @@ def parseTXT(txtName):
 
 def iForget(temp, wordENG):
     global words
-
+    print('>>> %s' % wordENG)
+    print(fullWordEg)
+    print('<<<<<<')
+    print(wordENG in fullWordEg)
     if wordENG not in fullWordEg:
         print('add it back')
         words.append(temp)
@@ -120,23 +124,30 @@ class Application:
             # remember to call master.update after it
             print('updating eng: %s' % input)
             self.ShowingWord.config(text=input)
+            self.button_remember.config(text='我记得')
 
         def updateCHN(input):
                 # remember to call master.update after it
             print('updating chn: %s' % input)
             self.ShowingResult.config(text=input)
+            self.button_remember.config(text='下一个')
 
         def RemButtonPressed():
             # Cause the self.eg & cn has already been poped, we don't need to take care
             global isShown_CHN
             global isShown_ENG
             global forgetWord
+            global isRemembered
 
             if forgetWord == self.word_eg:
                 # You already forget this word. Ignore this.
+                # ch_temp = '[' + self.word_ch + ']'
+                # temp = (self.word_eg, ch_temp)
+                # r = iForget(temp, self.word_eg)
                 ch_temp = '[' + self.word_ch + ']'
                 temp = (self.word_eg, ch_temp)
                 r = iForget(temp, self.word_eg)
+
                 self.word_eg = r[0]
                 ch = str(r[1:])
                 self.word_ch = str(ch[3:-4])
@@ -144,13 +155,17 @@ class Application:
                 updateCHN('')
                 updateENG(self.word_eg)
                 isShown_CHN = False
+                isRemembered = False
 
             elif isShown_CHN == False:
                 # Haven't given Chinese
                 updateCHN(self.word_ch)
                 isShown_CHN = True
+                isRemembered = True
 
             else:
+                # pick next word.
+                isRemembered = False
                 r = iRemember()
                 self.word_eg = r[0]
                 ch = str(r[1:])
@@ -168,8 +183,23 @@ class Application:
             global isShown_CHN
             global isShown_ENG
             global forgetWord
+            global isRemembered
 
-            if forgetWord != self.word_eg:
+            if isRemembered == True:
+                # no, you actually not remember.
+                ch_temp = '[' + self.word_ch + ']'
+                temp = (self.word_eg, ch_temp)
+                r = iForget(temp, self.word_eg)
+                self.word_eg = r[0]
+                ch = str(r[1:])
+                self.word_ch = str(ch[3:-4])
+                # show next word.
+                updateCHN('')
+                updateENG(self.word_eg)
+                isShown_CHN = False
+                isRemembered = False
+
+            elif forgetWord != self.word_eg:
                 # new word here
                 forgetWord = self.word_eg
                 updateCHN(self.word_ch)
@@ -187,6 +217,7 @@ class Application:
                 updateCHN('')
                 updateENG(self.word_eg)
                 isShown_CHN = False
+                isRemembered = False
 
             print('remaining: %s ' % str(len(words)))
             self.master.update()
@@ -281,10 +312,10 @@ class Application:
             print(event.keycode)
             print(event)
             print('>>>>>>>>>>>>>>>>>>')
-            if event.char == 'a' or event.keycode == 113:
-                nextWord_F()
-            if event.char == 's' or event.keycode == 114:
-                nextWord_R()
+            if event.char == 'a' or event.keycode == 113 or event.char == '\uf702':
+                FgtButtonPressed()
+            if event.char == 's' or event.keycode == 114 or event.char == '\uf703':
+                RemButtonPressed()
 
         self.master.bind("a", keyStroke)
         self.master.bind("s", keyStroke)
