@@ -125,9 +125,9 @@ class Application:
         print(event.keycode)
         print(event)
         print('>>>>>>>>>>>>>>>>>>')
-        if event.char == 'a' or event.keycode == 113 or event.char == '\uf702':
+        if event.char == 'a'  or event.keycode == 100 or event.keycode == 113 or event.char == '\uf702':
             self.FgtHelper()
-        if event.char == 's' or event.keycode == 114 or event.char == '\uf703':
+        if event.char == 's'  or event.keycode == 102 or event.keycode == 114 or event.char == '\uf703':
             self.RemHelper()
 
     def updateStatusBar(self, fgColor='MISS'):
