@@ -309,7 +309,7 @@ class Application:
 
         self.button_forget.pack(side='left', anchor='ne', fill='y')
         self.button_remember.pack(side='right', anchor='nw', fill='y')
-        self.imageLoad.pack(fill='both')
+        # self.imageLoad.pack(fill='both')
         self.button1.pack()
 
     def StartSetttings(self):
@@ -342,7 +342,7 @@ def main(txtName):
 
     root = tk.Tk()
     root.title('GREat@背单词')
-    root.geometry('280x550')
+    root.geometry('280x300')
     app = Application(root)
     r = iRemember()
     app.word_eg = r[0]
