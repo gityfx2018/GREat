@@ -141,7 +141,7 @@ class Application:
 
             else:
                 print('next')
-                isShown_F = False
+                isShown_F == False
                 r = iRemember()
                 self.word_eg = r[0]
                 ch = str(r[1:])

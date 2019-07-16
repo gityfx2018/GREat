@@ -127,7 +127,7 @@ class Application:
                     badDict[self.word_eg] = badDict[self.word_eg] + 1
 
             if (isShown_R == True) and (isShown_F == False) and (regretWord != self.word_eg):
-                # regret option, first exec
+                # regret option
                 print('append')
                 regretWord = self.word_eg
                 temp = (self.word_eg, self.word_ch)
@@ -139,9 +139,11 @@ class Application:
                 print(isShown_F)
                 self.ShowingResult.config(text=self.word_ch)
 
+            elif is
+
             else:
                 print('next')
-                isShown_F = False
+                isShown_F == False
                 r = iRemember()
                 self.word_eg = r[0]
                 ch = str(r[1:])

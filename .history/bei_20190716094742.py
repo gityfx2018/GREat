@@ -1,7 +1,6 @@
 import tkinter as tk
 # from backend import *
 import random
-import sys
 
 words = []
 isShown_R = False
@@ -111,37 +110,26 @@ class Application:
         def nextWord_F():
             global regretWord
             global badDict
-            global isShown_F
-            global isShown_R
 
-            print('exec nextWordF: ')
-            print(isShown_F)
-            print(isShown_R)
-            print(regretWord)
+            if self.word_eg not in badDict:
+                badDict[self.word_eg] = 1
 
-            if regretWord != self.word_eg:
-                if self.word_eg not in badDict:
-                    badDict[self.word_eg] = 1
+            else:
+                badDict[self.word_eg] = badDict[self.word_eg] + 1
 
-                else:
-                    badDict[self.word_eg] = badDict[self.word_eg] + 1
+            if (isShown_R == True) and (isShown_F == False) and (regretWord != self.word_ch):
+                # regret option
+                regretWord = self.word_ch
 
-            if (isShown_R == True) and (isShown_F == False) and (regretWord != self.word_eg):
-                # regret option, first exec
-                print('append')
-                regretWord = self.word_eg
-                temp = (self.word_eg, self.word_ch)
+                temp = (self.word_eg, regretWord)
                 words.append(temp)
 
             elif isShown_F == False:
-                print('output')
-                isShown_F = True
-                print(isShown_F)
+                isShown_F == True
                 self.ShowingResult.config(text=self.word_ch)
 
             else:
-                print('next')
-                isShown_F = False
+                isShown_F == False
                 r = iRemember()
                 self.word_eg = r[0]
                 ch = str(r[1:])
@@ -234,4 +222,4 @@ def main(txtName):
 
 if __name__ == '__main__':
     txtName = sys.argv[1]
-    main(txtName)
+    main()
