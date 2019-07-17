@@ -2,6 +2,7 @@ import tkinter as tk
 # from backend import *
 import random
 import sys
+import csv
 
 list_CN = []
 list_EN = []
@@ -42,9 +43,21 @@ class Application:
     def NextNewWord(self):
         # todo: delete prev entry
         self.updateBothButtons('我忘了', '我记得')
-        if self.wordState == True:
+
+        if self.wordState == False:
+            # save this to badict
+            print('saved to baddict')
+            print(list_EN[self.index])
+            if list_EN[self.index] not in self.badDict:
+                self.badDict[list_EN[self.index]] = 1
+            else:
+                self.badDict[list_EN[self.index]] = self.badDict[list_EN[self.index]] + 1
+            print(self.badDict)
+
+        else:
             list_CN.pop(self.index)
             list_EN.pop(self.index)
+
 
         self.updateStatusBar('yellow')
 
@@ -56,7 +69,14 @@ class Application:
         # self.updateStatusBar()
 
     def control(self, isRemembered):
-        print('level is %d' % self.level)
+        if len(list_EN) == 0:
+            # write baddict to file
+            print(self.badDict)
+            with open('result/10.csv', 'w') as f:
+                for key in self.badDict.keys():
+                    f.write('%s     %s\n' % (key, self.badDict[key]))
+
+        # print('level is %d' % self.level)
         if self.level == 0:
             self.level = 1
             if isRemembered == True:
@@ -120,11 +140,11 @@ class Application:
         self.button_remember.config(text=t2)
 
     def keyStroke(self, event):
-        print(">>>>>>>>>>>>>>>>s")
-        print(event.char)
-        print(event.keycode)
-        print(event)
-        print('>>>>>>>>>>>>>>>>>>')
+        # print(">>>>>>>>>>>>>>>>s")
+        # print(event.char)
+        # print(event.keycode)
+        # print(event)
+        # print('>>>>>>>>>>>>>>>>>>')
         if event.char == 'a'  or event.keycode == 100 or event.keycode == 113 or event.char == '\uf702':
             self.FgtHelper()
         if event.char == 's'  or event.keycode == 102 or event.keycode == 114 or event.char == '\uf703':
